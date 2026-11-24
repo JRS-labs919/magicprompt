@@ -10,6 +10,17 @@ Magicprompt is a Claude Code plugin for confirming task scope and verifying fact
 
 `prompt-gate` and `gate-and-verify` run only when invoked explicitly. `promptlvl9000` can also trigger on its own for high-accuracy questions.
 
+## Install in Claude Code
+
+Run these commands in a Claude Code session, then choose an installation scope.
+
+```text
+/plugin marketplace add JRS-labs919/magicprompt
+/plugin install magicprompt@magicprompt
+```
+
+Try `/magicprompt:prompt-gate Review this README for clarity` to see the scope approval step.
+
 ## What changed
 
 See `CHANGELOG.md`. v1.0.0 merged the two standalone skills and added the evidence gate, the independent reviewer and the claim checks. v1.1.0 is the optimisation pass: fewer files read per run, one-reply approvals, research budgets.
@@ -44,8 +55,6 @@ Clone or download and unzip this repository. From the repository root, start Cla
 ```sh
 claude --plugin-dir .
 ```
-
-Try `/magicprompt:prompt-gate Review this README for clarity` to see the scope approval step.
 
 - Remove the standalone `prompt-gate` and `promptlvl9000` skills after installing, or both copies will compete.
 - In Claude Code, plugin skills are namespaced: `/magicprompt:prompt-gate`, `/magicprompt:promptlvl9000`, `/magicprompt:gate-and-verify`.

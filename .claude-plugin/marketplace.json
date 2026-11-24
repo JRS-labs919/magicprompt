@@ -1,0 +1,13 @@
+{
+  "name": "magicprompt",
+  "owner": {
+    "name": "JRS-labs919"
+  },
+  "plugins": [
+    {
+      "name": "magicprompt",
+      "source": ".",
+      "description": "Claude Code skills for confirming task scope and verifying factual claims."
+    }
+  ]
+}
