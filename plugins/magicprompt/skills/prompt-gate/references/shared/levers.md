@@ -1,6 +1,6 @@
 # Levers — what each block of the compiled prompt defends against
 
-Read before compiling at STANDARD or FULL depth. Skip at MINIMAL.
+Background for writing a FULL prompt. Read when unsure what a block is for or how to fill it.
 
 ## The levers
 
@@ -26,7 +26,7 @@ The rule has three parts, and all three are needed:
 
 ### Verification gate
 
-"Double-check it" changes nothing. A countable check does. Compile actual comparisons with a stated pass criterion:
+"Double-check it" changes nothing. A countable check does. Write actual comparisons with a stated pass criterion:
 
 - counts in versus counts out, per category
 - hashes on anything meant to be unchanged
@@ -61,17 +61,19 @@ Every rating, quantity, price, and date cites its source file and cell or page. 
 
 Two passes beat one. Extract to a reviewable intermediate, stop, then build after approval. This is why round-trip workflows outperform one-shot builds on the same input.
 
-Compile it as an explicit stop between passes when the source material is large or the decisions downstream are consequential.
+Write it as two passes with the intermediate shown in the output. Put a stop between them only when the user asks for one — the default is to keep going.
 
-### Stop triggers
+### Hard stops
 
-A named list of conditions that halt work. Generic instructions to "ask if unsure" don't fire, because the whole problem is not knowing you're unsure. Named conditions fire:
+A run that halts for every doubt is a run nobody wants to start. Name the few conditions that genuinely cannot be worked around, and let everything else resolve to the conservative path with a logged note:
 
-- two sources conflict on a value that matters
-- a required field is missing
-- the schema doesn't match what was described
-- a referenced file isn't where it was said to be
-- the scope boundary makes the stated task impossible
+- an input the work cannot proceed without is missing or unreadable → hard stop
+- the next step would overwrite or delete something outside scope → hard stop
+- two sources conflict → register both, do not pick, keep going
+- a value is missing → TBD, keep going
+- unclear whether something is in scope → leave it alone, note it, keep going
+
+Generic instructions to "ask if unsure" don't fire anyway, because the whole problem is not knowing you're unsure. A short named list does.
 
 ### Ground-truth restatement
 

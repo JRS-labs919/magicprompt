@@ -10,7 +10,8 @@ Record count per sheet or section, cell notes, embedded images, hyperlinks,
 data validations, defined names, external links, hidden rows, macros.
 
 POST-EDIT INVENTORY (print side-by-side against pre-edit)
-Same list. Any delta is a failure — stop and report, do not present.
+Same list. Any delta is a failure — restore what was lost and re-run the
+inventory. If it cannot be restored, report it first and mark the file not safe to use.
 
 EXPLICITLY CONFIRM CARRIED OVER
 Cell notes, embedded images, hyperlinks.

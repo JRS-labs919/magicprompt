@@ -60,38 +60,44 @@ for s in ("prompt-gate", "gate-and-verify"):
 # 6 carry-over: rules from the originals + new behaviours present in each skill's effective text
 corpus = lambda s: "\n".join(p.read_text() for p in (SK / s).rglob("*.md"))
 required = {
-    "prompt-gate": ["Do not do the work", "Silence is never approval", "Gate words", "Stop triggers are real stops",
-                    "A failed gate item blocks the artifact", "Version drift", "MINIMAL", "PROPOSED ADDITIONS",
-                    "[inventoried]", "Proposed additions", "disable-model-invocation: true", "Flag, do not resolve",
+    "prompt-gate": ["Do not do the work yet", "Silence is never approval", "the gate stays closed", "Decide, don't ask",
+                    "the only gate", "Don't stop to check in", "HARD STOPS", "Calls I made", "Just the prompt",
+                    "A failed check gets fixed, not parked", "Re-gating", "Stopping to check in", "Second approval",
+                    "SHORT", "[inventoried]", "Could also", "disable-model-invocation: true", "Flag, do not resolve",
                     "PRE-EDIT INVENTORY", "STEP 0 — DISCOVERY", "SEARCH FIRST", "EXACT CHANGE LIST", "Drift signals",
-                    "What does not work", "Extraction split from decision",
-                    "Bare PASS", "[script]", "reviewer-agent", "Self-graded FULL", "Approve without additions",
-                    "Answers plus a gate word", "Over-reading"],
+                    "What does not work", "Bare PASS", "[script]", "reviewer-agent", "Over-reading"],
     "promptlvl9000": ["GO-WITH-ASSUMPTIONS", "HOLD", "Maximum two rework loops", "Real-world figures and identifiers",
                       "A pointer must be something opened this session", "Fast path", "trace:full", "Done-when",
                       "Hedge", "Premises", "audience:team", "Not for casual chat", "Gatekeeper interrupts", "Source authority",
                       "Knowledge check", "same-context", "Calc re-run", "Opus 5.5", "Role-played panel", "Assumptions:",
                       "Tool-call budget", "Budget creep", "tappable options"],
-    "gate-and-verify": ["Do not do the work", "Silence is never approval", "Assumptions carried", "No new GO/HOLD decision",
-                        "Maximum two rework loops", "Real-world figures and identifiers", "CLAIMS", "Stage 0",
-                        "Second gatekeeping", "disable-model-invocation: true", "Knowledge check", "[script]",
-                        "Approve without additions", "Tool-call budget"],
+    "gate-and-verify": ["Do not do the work yet", "Silence is never approval", "the gate stays closed", "the only gate",
+                        "HARD STOPS", "No new GO/HOLD decision", "Maximum two rework loops", "Real-world figures and identifiers",
+                        "CLAIMS", "Stage 0", "Second gatekeeping", "Re-gating", "Nothing is withheld",
+                        "disable-model-invocation: true", "Knowledge check", "[script]", "Tool-call budget"],
 }
 for s, phrases in required.items():
     c = corpus(s); miss = [p for p in phrases if p not in c]
     check(f"{s}: {len(phrases)} required rules present", not miss, f"missing={miss}" if miss else "")
+
+# 6b rules retired in 1.2.0 must not survive anywhere in the gate skills
+retired = ["re-enters at Phase 1", "Stop triggers are real stops", "A failed gate item blocks the artifact", "STOP AND ASK IF",
+           "Every re-present ends with a gate call", "MINIMAL", "STANDARD"]
+for s_ in ("prompt-gate", "gate-and-verify"):
+    hit = [p_ for p_ in retired if p_ in corpus(s_)]
+    check(f"{s_}: {len(retired)} retired rules absent", not hit, f"still present={hit}" if hit else "")
 
 # 7 load budgets — bytes actually read per run, against the pre-optimisation baselines
 def load(s, *lazy):
     return (SK / s / "SKILL.md").stat().st_size + sum((SK / s / "references/shared" / f).stat().st_size for f in lazy)
 BASE = {"prompt-gate original": 24732, "promptlvl9000 v1.0.0": 21960, "gate-and-verify v1.0.0": 41086}
 paths = [
-    ("prompt-gate MINIMAL",                 load("prompt-gate", "variant-f.md"), 2, "prompt-gate original"),
-    ("prompt-gate STANDARD (variant B)",    load("prompt-gate", "variant-b.md", "levers.md", "gate-report.md"), 4, "prompt-gate original"),
-    ("prompt-gate FULL research + reviewer", load("prompt-gate", "variant-d.md", "levers.md", "claim-tags.md", "gate-report.md", "reviewer-agent.md"), 6, None),
-    ("promptlvl9000, chat",                 load("promptlvl9000"), 1, "promptlvl9000 v1.0.0"),
-    ("promptlvl9000 + reviewer agent",      load("promptlvl9000", "reviewer-agent.md"), 2, "promptlvl9000 v1.0.0"),
-    ("gate-and-verify (variant D, chat)",   load("gate-and-verify", "variant-d.md", "levers.md", "gate-report.md"), 4, "gate-and-verify v1.0.0"),
+    ("prompt-gate SHORT",                    load("prompt-gate"), 1, "prompt-gate original"),
+    ("prompt-gate FULL (variant B)",         load("prompt-gate", "variant-b.md", "gate-report.md"), 3, "prompt-gate original"),
+    ("prompt-gate FULL research + reviewer", load("prompt-gate", "variant-d.md", "claim-tags.md", "gate-report.md", "reviewer-agent.md"), 5, None),
+    ("promptlvl9000, chat",                  load("promptlvl9000"), 1, "promptlvl9000 v1.0.0"),
+    ("promptlvl9000 + reviewer agent",       load("promptlvl9000", "reviewer-agent.md"), 2, "promptlvl9000 v1.0.0"),
+    ("gate-and-verify (variant D, chat)",    load("gate-and-verify", "variant-d.md", "gate-report.md"), 3, "gate-and-verify v1.0.0"),
 ]
 for name, size, files, base in paths:
     if base:

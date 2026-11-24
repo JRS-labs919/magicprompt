@@ -5,8 +5,8 @@ Add to the template:
 ```
 STEP 0 — DISCOVERY
 Map the relevant code and state the entry point before changing anything.
-If <component> cannot be located, stop and report — do not build around it
-or reimplement it.
+If <component> cannot be located, that is a hard stop — do not build around
+it or reimplement it.
 
 CHANGE DISCIPLINE
 No features beyond the stated list. No refactoring of adjacent code.

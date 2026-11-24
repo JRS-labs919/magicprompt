@@ -12,7 +12,7 @@ Declare each planned gate item as [script] or [judgment] when the prompt or plan
 ## Format
 
 ```
-**Gate — <skill> <prompt version or run id>**
+**Checks — prompt v<n>**
 G1 [script]   <check> — PASS | FAIL | NOT RUN
      `<command or script line>` → <actual output, verbatim or trimmed to the relevant line>
 G2 [judgment] <check> — PASS | FAIL
@@ -26,7 +26,7 @@ Review: independent (<model>, separate context) | same-context (no subagent tool
 
 1. Print every item, pass or fail. An unreported gate is indistinguishable from a skipped one.
 2. No bare PASS. A [script] item without its command and output is a FAIL of the gate itself.
-3. A failed item blocks the artifact. Report what failed; do not hand over the deliverable until it passes or the user explicitly waives it.
+3. A failed item gets fixed and re-checked when the fix is inside scope — twice at most. Still failing → it leads the output, in plain words, and that part of the deliverable is marked not safe to use. Never bury a failure below the deliverable.
 4. Never call a same-context review independent.
 5. After the gate, list anything in the governing prompt that was not satisfied, and why.
 

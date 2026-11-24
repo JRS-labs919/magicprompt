@@ -1,78 +1,89 @@
 ---
 name: prompt-gate
-description: Compile a casual request into a reviewable prompt — sources, unknowns, scope, stop triggers, evidence gate — show it with assumptions flagged, and execute only after approval. Explicit invocation only.
+description: Turn a rough ask into a well-formed prompt, show it once with assumptions flagged, run it on approval, then get out of the way — no re-gating of follow-ups. Explicit invocation only.
 disable-model-invocation: true
 ---
 
 # Prompt Gate
 
-The user asks for something the way they'd ask in normal conversation. Instead of doing it, compile that request into an explicit prompt, show it, and wait. Only after approval does any work happen.
+The user asks for something the way they'd say it out loud. Turn that into a well-formed prompt, show it, get one approval, run it. After that the conversation is normal again.
 
-The point is not ceremony. Most bad output traces back to a gap that was invisible at request time — an unstated source hierarchy, an unstated unknown-handling rule, an unbounded change surface. Surfacing those *before* work starts is far cheaper than catching them in the deliverable, and it puts the user in position to correct the framing rather than the output.
+Most bad output traces back to a gap that was invisible in the rough ask — which source governs, what to do with a missing value, what must not be touched. A good prompt closes those gaps before work starts. That is the whole job: a better prompt, approved once. It is not a checkpoint on everything that follows.
 
-When the main risk is a wrong *answer* rather than a misread *ask* — research, supplier facts, exec summaries — use `gate-and-verify`: same gate, plus the claim-verified answer pipeline.
+When the main risk is a wrong *answer* rather than a rough *ask* — research, supplier facts, exec summaries — use `gate-and-verify`: same single approval, then the claim-verified answer pipeline.
 
-## The loop
+## The flow
 
 ```
-1. COMPILE   — classify, inventory sources, build the prompt
-2. PRESENT   — prompt + assumption ledger + open questions
-3. GATE      — wait for approval; edits recompile and re-present
-4. EXECUTE   — run against the approved prompt, verbatim
-5. CLOSE     — report every verification-gate item with its evidence
+1. REFINE    — write the prompt; do none of the work
+2. SHOW      — prompt + what was assumed
+3. APPROVE   — once: Run / Edit / Cancel
+4. RUN       — follow the prompt without stopping to check in
+5. FINISH    — deliverable, then checks and the calls that were made
+   then      — normal conversation; the gate stays closed
 ```
 
 ## What to read, and when
 
-Phases 1–3 and the template are in this file. Everything else loads only when it applies — read what applies in one batch.
+Steps 1–3 and the template are in this file. The rest loads only when it applies — in one batch.
 
 | When | Read |
 |---|---|
-| After classifying | `references/shared/variant-a.md` … `variant-f.md` — the one matching file |
-| STANDARD or FULL, before building the prompt | `references/shared/levers.md` |
+| FULL prompt, after picking the task type | `references/shared/variant-a.md` … `variant-f.md` — the one matching file |
 | Variant A or D, or the output will state real-world figures | `references/shared/claim-tags.md` — the claim-tag rules |
-| Phase 5 | `references/shared/gate-report.md` |
-| FULL depth and a subagent tool exists | `references/shared/reviewer-agent.md` |
-| Depth or shape unclear | `references/examples.md` |
+| Unsure how to fill a block | `references/shared/levers.md` |
+| Step 5, FULL prompt | `references/shared/gate-report.md` |
+| Step 5, FULL prompt, and a subagent tool exists | `references/shared/reviewer-agent.md` |
+| Size or shape unclear | `references/examples.md` |
 
 {{include: gate-loop.md}}
 
 {{include: template.md}}
 
-## Phase 4 — Execute
+## Step 4 — Run
 
-Open with one line naming what's running: `Executing approved prompt v2.` Then follow it literally. Group independent tool calls in the same turn.
+Open with one line: `Running prompt v1.` Then follow it. Group independent tool calls in the same turn.
 
-**The approved prompt governs.** Where it conflicts with the original casual phrasing, the prompt wins — that's what the review was for. Where it conflicts with a general habit or a nicer-looking alternative, the prompt still wins.
+**The approved prompt governs** — over the original rough phrasing, and over a nicer-looking alternative.
 
-**Stop triggers are real stops.** When one fires, stop and report. Do not improvise a resolution, do not proceed on the most plausible reading, do not note it at the bottom and continue. The user approved a prompt that said to stop.
+**Don't stop to check in.** Only the prompt's HARD STOPS halt the run. For everything else take the conservative path, keep going, and note it for the end:
 
-**If the approved prompt turns out to be wrong** — a source doesn't contain what the inventory implied, the scope boundary makes the task impossible — stop, say what's wrong, propose the amendment, and wait. Do not silently amend and continue.
+- a value is missing → `TBD`
+- two sources conflict → register both, pick neither
+- unclear whether something is in scope → leave it alone
+- a choice with no stated preference → the option that changes least
 
-## Phase 5 — Close
+If the prompt itself turns out to be unworkable — a source doesn't contain what it was said to, the scope makes the task impossible — that is a hard stop: say what's wrong and what the corrected prompt would be.
 
-Report the verification gate in the `references/shared/gate-report.md` format: every item, pass or fail; each `[script]` item with its command and actual output; each `[judgment]` item with what was compared and who judged it. Where a code tool exists, put the `[script]` checks in one script and run it once. Print the gate even when everything passes.
+## Step 5 — Finish
 
-At FULL depth with a subagent tool, a separate reviewer agent grades the gate — it receives the approved prompt, the deliverable and the source pointers, not your reasoning. Otherwise review is same-context and labelled so.
+Deliverable first. Then, for a FULL prompt, a short close:
 
-**A failed gate item blocks the artifact.** Report what failed; do not hand over the deliverable until it passes or the user explicitly waives it.
+```
+**Checks** — each with its evidence: command → output, or what was compared and who judged it
+**Calls I made** — the conservative-path choices from the run
+**Still TBD** — what the sources didn't give
+```
 
-Then list anything in the approved prompt that was not satisfied, and why. A partially-satisfied prompt reported honestly is useful; a partially-satisfied prompt presented as complete is the failure this whole skill is built to prevent.
+Format and rules for Checks: `references/shared/gate-report.md`. Where a code tool exists, run the `[script]` checks as one script and print its output. When a subagent tool exists, a separate reviewer agent grades the checks; otherwise review is same-context and labelled so.
+
+**A failed check gets fixed, not parked.** Fix it if the fix is inside scope and re-run the checks — twice at most. Still failing → say so first, above the deliverable, and mark that part not safe to use.
+
+A SHORT prompt gets no close unless something was assumed or is TBD — then one line.
 
 ## Failure modes
 
-Watch for these in your own output — each has happened:
-
 | Failure | What it looks like |
 |---|---|
-| Leaking the answer | The compile turn contains a finding, a number, or "it looks like X" |
-| Padding the ledger | Twelve assumptions, none of which change anything |
+| Leaking the answer | The refine turn contains a finding, a number, or "it looks like X" |
+| Re-gating | A follow-up after the run gets a new prompt and a new approval nobody asked for |
+| Stopping to check in | The run halts for something not on the HARD STOPS list |
+| Second approval | Edits come back for another sign-off instead of being applied and run |
+| Question dump | "Need from you" lists things that could have been assumed |
+| Padded assumptions | Twelve assumptions, none of which change anything |
 | Silent scope growth | The prompt asks for more than the user did, unmarked |
 | Fake inventory | SOURCES lists a file that was never checked for existence |
-| Soft gate | Executing on an ambiguous reply, or on answered questions alone |
-| Skipped gate report | Output presented without printing the verification results |
-| Bare PASS | A gate item marked PASS with no command, output, or named judge |
-| Self-graded FULL | A FULL-depth deliverable graded in the same context while a subagent tool was available |
-| Version drift | Executing against v1 after v2 was approved |
-| Blocks dropped | A template block omitted because it "didn't seem relevant" |
-| Over-reading | Loading every variant file, or the levers at MINIMAL |
+| Running on silence | Executing when the reply never said to |
+| Bare PASS | A check marked PASS with no command, output, or named judge |
+| Buried failure | A failed check reported below the deliverable |
+| Over-reading | Loading every variant file, or the levers for a SHORT prompt |

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 — 2026-11-24
+prompt-gate simplified: its job is a better prompt, approved once — not a checkpoint on everything after it.
+
+- **One gate.** Refine → Show → Approve → Run → Finish. Routine edits and answers are applied and run, opening with the changed lines. A request to review the revised prompt or a change to the task itself calls for review before running.
+- **The gate stays closed after the run.** Follow-ups in the same chat are handled normally. The old rule that every new request re-entered the gate is removed. Refine again only on a new invocation.
+- **No mid-run check-ins.** STOP AND ASK IF is replaced by HARD STOPS — a missing input the work cannot proceed without, or an overwrite outside scope. Everything else takes the conservative path (TBD, register the conflict, leave it alone) and is listed under "Calls I made".
+- **Failed checks get fixed, not parked.** Fix inside scope and re-check, twice at most; still failing → it leads the output and that part is marked not safe to use. The deliverable is no longer withheld.
+- **Decide, don't ask.** Assume and list; questions only for what changes the result and cannot be guessed — two at most.
+- **Simpler shape.** Short and full prompts omit unused blocks. Optional additions stay in one "Could also" line. The approval options are Run / Edit / Cancel.
+- **"Just the prompt".** Ask for the prompt alone and it is handed over to run elsewhere.
+- gate-and-verify follows the same flow; nothing is withheld — unverified claims ship as TBD.
+- promptlvl9000 unchanged.
+
 ## 1.1.1 — 2026-11-24
 
 - Package the plugin in a dedicated directory for Claude marketplace sync.

@@ -1,17 +1,17 @@
 # Worked Examples
 
-Read when the right depth or shape is unclear. Three examples: MINIMAL, STANDARD, FULL.
+Read when the right size or shape is unclear. One SHORT prompt, two FULL.
 
 ---
 
-## Example 1 — MINIMAL
+## Example 1 — SHORT
 
 **The ask:** "what's the standard date format for a sortable filename"
 
 No sources, no artifact, nothing irreversible. Do not compile a thirty-line contract for this.
 
 ```
-**Compiled prompt — v1** (variant F, MINIMAL)
+**Prompt — v1**
 
 TASK
 Give a standard date format that sorts chronologically in filenames.
@@ -23,23 +23,21 @@ OUTPUT
 Inline. Give one example filename.
 ```
 
-**Assumptions** — strike anything wrong
+**Assumed** — tell me if any are wrong
 1. Use whole calendar dates in filenames.
 
-**Open questions** — none.
-
-*Note the ledger has one entry, not five. Only things that change the answer.*
+*Note one assumption, not five. Only things that change the answer.*
 
 ---
 
-## Example 2 — STANDARD
+## Example 2 — FULL, read-only audit
 
 **The ask:** "check whether the links on the Orders tab point to the right invoices"
 
 One source, bounded, read-only, produces a finding rather than an artifact.
 
 ```
-**Compiled prompt — v1** (variant B/A, STANDARD)
+**Prompt — v1**
 
 TASK
 Audit the hyperlinks on the Orders tab of <workbook> against the
@@ -57,7 +55,7 @@ UNKNOWNS
 A row whose correct target cannot be determined from the sheet data →
 report as UNDETERMINED with what is known. Do not guess the intended target.
 
-VERIFICATION GATE (report each, pass or fail)
+CHECKS (reported at the end, pass or fail, with evidence)
 - every one of the 41 rows accounted for: correct / mismatched / no link / undetermined
 - counts sum to 41
 - for each mismatch, name both the linked file and the file the row data implies
@@ -72,29 +70,29 @@ DO NOT
 - comment on pricing or spec content
 ```
 
-**Assumptions** — strike anything wrong
+**Assumed** — tell me if any are wrong
 1. Read-only — you want the finding before any fix.
 2. Mismatch is judged against the row's invoice number and billing date.
 3. Three linked files sampled is enough to establish a pattern; more only if it's not systematic.
 
-**Proposed additions** — not in your ask; say the word to drop them
+**Could also** — not included; say "add it"
 - Flag rows with no hyperlink at all, not just wrong ones.
 
-**Open questions**
+**Need from you**
 1. If the offset turns out to be systematic, do you want the fix in the same pass or as a separate approved step?
 
 *Note the OUTPUT block bans the corrected workbook. Without that line, a helpful fix arrives unrequested and the audit becomes unreviewable.*
 
 ---
 
-## Example 3 — FULL
+## Example 3 — FULL, file transformation
 
 **The ask:** "clean up this workbook so it's readable, don't lose anything"
 
 Existing artifact in, modified artifact out, feeding a downstream system of record. Highest risk. Every block earns its place.
 
 ```
-**Compiled prompt — v1** (variant B, FULL)
+**Prompt — v1**
 
 TASK
 Improve the readability and layout of <workbook> and emit <workbook v-next>.
@@ -119,7 +117,8 @@ Per tab: record count, cell notes, embedded images, hyperlinks, data
 validations, defined names, external links, hidden rows, macros, table ranges.
 
 POST-EDIT INVENTORY (print side-by-side)
-Same list. Any delta is a failure — stop and report, do not present.
+Same list. Any delta is a failure — restore what was lost and re-run the
+inventory. If it cannot be restored, report it first.
 
 SOURCE-DEFECT CHECK
 Flag anything structurally wrong in the SOURCE — links offset from their
@@ -127,12 +126,13 @@ rows, data stranded outside a table boundary, hidden rows masking live
 records, a table range short of the last column. Flag only; do not fix.
 Preserving a defect faithfully still ships the defect.
 
-STOP AND ASK IF
-- a formatting change would require moving a cell value
-- two tabs disagree on a shared value
+HARD STOPS (only these halt the run)
 - an element cannot be carried over by the available library
+Anything else unclear → conservative path, keep going, list it:
+a formatting change that would move a cell value → skip that change;
+two tabs disagree on a shared value → register both, change neither.
 
-VERIFICATION GATE (report each, pass or fail)
+CHECKS (reported at the end, pass or fail, with evidence)
 - 234 records in / 234 out, cell values identical
 - 39 notes in / 39 out, each landed on the same record matched by part number
 - embedded image byte-identical
@@ -148,28 +148,28 @@ Do not produce: a summary document, a PDF, or a second variant.
 DO NOT
 - silently drop anything the library cannot round-trip
 - reformat in a way that changes how a value parses
-- present output without printing the gate results
+- present output without printing the check results
 ```
 
-**Assumptions** — strike anything wrong
+**Assumed** — tell me if any are wrong
 1. "Don't lose anything" covers notes, images, and hyperlinks — not just cell values.
 2. Presentation-only means formulas are untouched, including the duplicated FX rate.
 3. New file, version-incremented; the original stays intact.
 
-**Proposed additions** — not in your ask; say the word to drop them
+**Could also** — not included; say "add it"
 - A changelog tab.
 - Flagging (not fixing) source defects found during the pass.
 
-**Open questions**
+**Need from you**
 1. Which spreadsheet apps need to display the workbook correctly?
 
-*Note the two independent halves of the gate: the inventory diff catches loss, the source-defect check catches inherited errors. A workbook can pass the first perfectly while shipping a broken link block.*
+*Note the two independent halves of the checks: the inventory diff catches loss, the source-defect check catches inherited errors. A workbook can pass the first perfectly while shipping a broken link block.*
 
 ---
 
 ## Calibration notes
 
-- **Ledger length tracks risk, not prompt length.** The FULL example has three assumptions. Three that matter beat twelve that don't.
+- **The assumption list tracks risk, not prompt length.** The FULL example has three assumptions. Three that matter beat twelve that don't.
 - **`Do not produce` is doing real work** in examples 2 and 3. The unrequested helpful extra is a frequent failure and one line prevents it.
-- **Proposed additions stay outside the prompt block.** They are struck by a word, not edited out of a fenced block on a phone.
-- **Open questions are things that cannot be assumed** — not things that could be assumed and logged. If it can go in the ledger, it goes in the ledger; a long question list stalls the gate.
+- **"Could also" stays outside the prompt block** and is out by default. One word adds it; nothing has to be edited out of a fenced block on a phone.
+- **"Need from you" is for things that cannot be assumed** — two at most. If it can be assumed and listed, assume it and list it; a question list stalls the one approval.

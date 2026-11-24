@@ -4,7 +4,7 @@ Magicprompt is a plugin for confirming task scope and verifying factual claims i
 
 | Skill | Use when | Guards against |
 |---|---|---|
-| `prompt-gate` | Builds, file transformations, skill edits, anything irreversible or feeding a system of record | Misreading the ask |
+| `prompt-gate` | A rough ask you want turned into a well-formed prompt and run — one approval, then normal conversation | A misread ask |
 | `promptlvl9000` | Factual questions, specs, prices, lead times, standards, current status | Fabricated answers |
 | `gate-and-verify` | High-stakes research, reviews, exec summaries where the ask is fuzzy too | Both |
 
@@ -27,7 +27,7 @@ Try `/magicprompt:prompt-gate Review this README for clarity` to see the scope a
 
 ## What changed
 
-See `CHANGELOG.md`. v1.0.0 merged the two standalone skills and added the evidence gate, the independent reviewer and the claim checks. v1.1.0 is the optimisation pass: fewer files read per run, one-reply approvals, research budgets.
+Version 1.2.0 simplifies `prompt-gate` and `gate-and-verify` to one approval per invocation. Follow-ups proceed normally, and unresolved findings are flagged in the output. See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 promptlvl9000 was rebuilt from the 2026-10-02 version. If you changed your installed copy after that, merge those changes into `src/promptlvl9000/SKILL.md`.
 

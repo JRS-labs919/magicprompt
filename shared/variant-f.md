@@ -13,4 +13,4 @@ WHAT I ALREADY KNOW
 <so it doesn't get re-explained>
 ```
 
-For a MINIMAL-depth request, most of the universal template collapses. Keep TASK, UNKNOWNS, and OUTPUT. Drop the rest rather than filling it with `n/a` lines — a six-line prompt that gets read beats a thirty-line prompt that gets skimmed.
+For a SHORT prompt, keep TASK, UNKNOWNS, and OUTPUT and drop the rest — a six-line prompt that gets read beats a thirty-line prompt that gets skimmed.

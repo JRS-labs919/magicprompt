@@ -1,6 +1,6 @@
 ---
 name: prompt-gate
-description: Compile a casual request into a reviewable prompt — sources, unknowns, scope, stop triggers, evidence gate — show it with assumptions flagged, and execute only after approval. Explicit invocation only.
+description: Turn a rough ask into a well-formed prompt, show it once with assumptions flagged, run it on approval, then get out of the way — no re-gating of follow-ups. Explicit invocation only.
 disable-model-invocation: true
 ---
 
@@ -8,149 +8,116 @@ disable-model-invocation: true
 
 # Prompt Gate
 
-The user asks for something the way they'd ask in normal conversation. Instead of doing it, compile that request into an explicit prompt, show it, and wait. Only after approval does any work happen.
+The user asks for something the way they'd say it out loud. Turn that into a well-formed prompt, show it, get one approval, run it. After that the conversation is normal again.
 
-The point is not ceremony. Most bad output traces back to a gap that was invisible at request time — an unstated source hierarchy, an unstated unknown-handling rule, an unbounded change surface. Surfacing those *before* work starts is far cheaper than catching them in the deliverable, and it puts the user in position to correct the framing rather than the output.
+Most bad output traces back to a gap that was invisible in the rough ask — which source governs, what to do with a missing value, what must not be touched. A good prompt closes those gaps before work starts. That is the whole job: a better prompt, approved once. It is not a checkpoint on everything that follows.
 
-When the main risk is a wrong *answer* rather than a misread *ask* — research, supplier facts, exec summaries — use `gate-and-verify`: same gate, plus the claim-verified answer pipeline.
+When the main risk is a wrong *answer* rather than a rough *ask* — research, supplier facts, exec summaries — use `gate-and-verify`: same single approval, then the claim-verified answer pipeline.
 
-## The loop
+## The flow
 
 ```
-1. COMPILE   — classify, inventory sources, build the prompt
-2. PRESENT   — prompt + assumption ledger + open questions
-3. GATE      — wait for approval; edits recompile and re-present
-4. EXECUTE   — run against the approved prompt, verbatim
-5. CLOSE     — report every verification-gate item with its evidence
+1. REFINE    — write the prompt; do none of the work
+2. SHOW      — prompt + what was assumed
+3. APPROVE   — once: Run / Edit / Cancel
+4. RUN       — follow the prompt without stopping to check in
+5. FINISH    — deliverable, then checks and the calls that were made
+   then      — normal conversation; the gate stays closed
 ```
 
 ## What to read, and when
 
-Phases 1–3 and the template are in this file. Everything else loads only when it applies — read what applies in one batch.
+Steps 1–3 and the template are in this file. The rest loads only when it applies — in one batch.
 
 | When | Read |
 |---|---|
-| After classifying | `references/shared/variant-a.md` … `variant-f.md` — the one matching file |
-| STANDARD or FULL, before building the prompt | `references/shared/levers.md` |
+| FULL prompt, after picking the task type | `references/shared/variant-a.md` … `variant-f.md` — the one matching file |
 | Variant A or D, or the output will state real-world figures | `references/shared/claim-tags.md` — the claim-tag rules |
-| Phase 5 | `references/shared/gate-report.md` |
-| FULL depth and a subagent tool exists | `references/shared/reviewer-agent.md` |
-| Depth or shape unclear | `references/examples.md` |
+| Unsure how to fill a block | `references/shared/levers.md` |
+| Step 5, FULL prompt | `references/shared/gate-report.md` |
+| Step 5, FULL prompt, and a subagent tool exists | `references/shared/reviewer-agent.md` |
+| Size or shape unclear | `references/examples.md` |
 
-## Phase 1 — Compile
+## Step 1 — Refine
 
-### Do not do the work
+### Do not do the work yet
 
-This is the load-bearing rule. During the compile turn, produce no part of the answer — no partial finding, no "the answer is likely X", no preliminary read of the actual content, no hedged preview. A leaked answer anchors the review and defeats the entire purpose: the user stops reviewing the prompt and starts reacting to the result.
+While refining, produce no part of the answer — no partial finding, no "it looks like X", no preview. A leaked answer anchors the review: the user stops reading the prompt and starts reacting to the result.
 
-If the request is trivial enough that compiling feels like overhead, compile a short prompt anyway. A consistent gate the user can rely on beats a fuzzy escape hatch that fires inconsistently.
+A question *about* the prompt ("why is that in scope?") is not a work request. Answer it directly.
 
-The one exception: a conversational question *about* this skill or about a prompt already compiled ("what does authority hierarchy mean?", "why did you put that in scope?") is not a work request. Answer it directly and stay in the gate.
+### Size it
 
-A new work request later in the same thread re-enters at Phase 1 and gets its own prompt. Only questions about output already delivered stay ungated.
+- **SHORT** — a question, no files, nothing produced. TASK, UNKNOWNS, OUTPUT. Five or six lines.
+- **FULL** — files, a deliverable, or a change to existing work. Every template block that applies.
 
-### Classify the task
+Use only the blocks that apply. Leave the rest out — no `n/a` lines.
 
-Pick the closest variant and read only its file — `references/shared/variant-a.md` through `variant-f.md`:
+### Task type (FULL only)
 
-- **A — Document / spec / RFQ review or extraction**
-- **B — File transformation** (an existing file in, a modified file out)
-- **C — Build / code / tooling**
-- **D — Research / market / supplier**
-- **E — Skill, prompt, or instruction editing**
-- **F — General** (none of the above; use the universal template only)
+Read the one matching file, `references/shared/variant-a.md` through `variant-f.md`, and add its blocks:
 
-Some requests span two. Compile against the primary one and pull the extra blocks that matter from the second. Variants A and D always carry the CLAIMS block (the claim-tag rules).
+- **A** — Document / spec / RFQ review or extraction
+- **B** — File transformation (an existing file in, a modified file out)
+- **C** — Build / code / tooling
+- **D** — Research / market / supplier
+- **E** — Skill, prompt, or instruction editing
+- **F** — General
 
-### Inventory the sources — read-only, no analysis
+A and D always carry the CLAIMS block (the claim-tag rules).
 
-If files are attached or referenced, run a bounded inventory so the SOURCES block is accurate rather than guessed. Batch the inventory calls in one turn:
+### Check the sources (only when files or links are referenced)
 
-- names, types, sizes; directory listings
-- spreadsheets: sheet names, row/column counts, table ranges
-- documents: page count, section headings
-- JSON: top-level keys
-- code: entry points and file structure
+A bounded, read-only inventory so SOURCES is accurate rather than guessed — names, sizes, sheet names and row counts, page counts and headings, top-level keys, entry points. Batch the calls in one turn. Do not read content to answer anything.
 
-Stop there. Do not read content to answer anything, do not open linked or downstream files, do not start reconciling. If the inventory raises a question, that question belongs in the compiled prompt, not in a resolution you perform now.
+Mark each source `[inventoried]` or `[user-stated, unverified]`. A referenced file that isn't there goes under "Need from you" — never write a prompt around a file that may not exist.
 
-Mark each SOURCES entry as `[inventoried]` or `[user-stated, unverified]`. If the user referenced a file that isn't actually present, say so in the open questions — do not compile a prompt around a file that may not exist.
+### Write the prompt
 
-If there are no sources, skip this step entirely.
+Use the Universal template below. `references/shared/levers.md` explains what each block defends against — read it when unsure how to fill one.
 
-Then mark each source reachable / size-limited / auth-walled / unverified, and each planned gate item `[script]` or `[judgment]` and runnable-here or not. A gate item that cannot run in this environment is not a gate — say so before the gate, not after. Note whether a subagent tool exists; that decides whether review will be independent or same-context (`references/shared/reviewer-agent.md`).
+- **Decide, don't ask.** If a gap can be closed with a reasonable assumption, assume it and list it. A question is only for something that changes the result and cannot be guessed — two at most.
+- **Everything inferred is listed.** If it isn't worth listing under Assumed, it isn't worth putting in the prompt. List only what changes the output; a padded list stops getting read.
+- **Don't widen the ask.** A useful extra goes in one "Could also" line. It is out unless the user says to add it.
 
-### Pick the depth
-
-- **MINIMAL** — no sources, no artifact produced, nothing irreversible, one factual answer. Six lines is plenty: task, unknown rule, output shape.
-- **STANDARD** — one source or one artifact, bounded work. Every block present, each terse.
-- **FULL** — multiple sources, transformation of existing data, anything irreversible, or anything feeding a downstream system of record. Review by reviewer-agent when a subagent tool exists.
-
-Default to STANDARD. Move to FULL whenever existing data could be degraded.
-
-### Build the prompt
-
-Use the Universal template section below and the blocks from the one variant file. At STANDARD and FULL, read `references/shared/levers.md` first — it says what each block defends against. At MINIMAL, skip it. Every block gets filled or explicitly marked `n/a` — a silently omitted block is exactly the gap this skill exists to close.
-
-At MINIMAL this reverses — keep TASK, UNKNOWNS, OUTPUT, drop the rest outright rather than printing `n/a`. Dropping blocks is a failure at STANDARD/FULL only.
-
-Two rules govern what goes in:
-
-**Nothing enters the prompt that the user didn't say without being logged.** Every inferred line gets an entry in the assumption ledger. If it isn't worth logging, it isn't worth putting in the prompt.
-
-**Scope never expands silently.** If the request should plausibly be wider — an obvious adjacent check, a related sheet, a second failure mode — that goes in a separate `PROPOSED ADDITIONS` block the user can strike wholesale. Never fold it into the main scope.
-
-## Phase 2 — Present
-
-Exact structure:
+## Step 2 — Show
 
 ```
-**Compiled prompt — v1** (variant X, depth Y)
+**Prompt — v1**
 
 <the prompt, in a fenced block, copy-ready>
 
-**Assumptions** — strike anything wrong
+**Assumed** — tell me if any are wrong
 1. ...
-2. ...
 
-**Proposed additions** — not in your ask; say the word to drop them
-- ...
+**Could also** — <one line> (say "add it")
 
-**Open questions** — I can't assume these
+**Need from you**
 1. ...
 ```
 
-Then call the gate.
+Omit empty sections.
 
-Keep the assumption ledger to what actually changes the output. "I assumed you want this in a file" matters. "I assumed you want it written in English" does not. A padded ledger stops getting read, which is the same as having no ledger.
+## Step 3 — Approve — the only gate
 
-Omit empty sections rather than printing them with "none".
+One approval, once. Use tappable options where possible — `ask_user_input_v0` with Run / Edit / Cancel — since this is often reviewed on a phone. Anything under "Need from you" that has a short list of answers goes in the same call, so one reply answers and approves.
 
-## Phase 3 — Gate
+- **Run, go, yes, do it** → run.
+- **Cancel** → end the run without executing the prompt.
+- **Edit without changes specified** → ask what to change.
+- **Corrections, answers, struck assumptions, "add it"** → apply them and run, opening with the changed lines as v2. If the user asks to see the revision first or changes the task itself, show the revised prompt and wait for approval.
+- **Can't tell whether to run** → ask once, plainly. Silence is never approval.
+- **"Just the prompt"**, or a request for it as a file → hand over the prompt with its assumptions and stop. It is theirs to run elsewhere.
 
-Ask for approval with tappable options where possible — `ask_user_input_v0` — since this is often reviewed on a phone. Fall back to a plain question if unavailable.
+## After the run — the gate stays closed
 
-- Options: Approve / Edit / Cancel. When proposed additions exist: Approve with additions / Approve without additions / Edit / Cancel — an approval never leaves the additions' status ambiguous.
-- Open questions that have a short list of possible answers go in the same call as the gate (three questions maximum, gate included), so one reply can answer and approve. Open-ended questions are asked in prose above it.
+Once the prompt has run, the conversation is normal again. Follow-ups, tweaks, "now do the same for the other tab", new questions — handle them directly. No new prompt, no approval, no closing report.
 
-Reading the reply:
-
-- **Gate words** — "yes", "go", "run it", "approved", "ship it", "do it" → execute.
-- **Any edit, correction, or struck assumption** → apply it, increment the version, re-present. On a re-present, show only the changed lines plus the new version number, not the whole prompt again — unless the changes are extensive enough that a full reprint is clearer.
-- **Answers to open questions with no gate word** → fold them in, show the delta, ask once more. Do not treat an answer as approval.
-- **Answers plus a gate word in the same reply** → fold the answers in, increment the version, and execute — opening with the changed lines so the user sees exactly what ran. If an answer changes scope, sources or output rather than filling a blank, re-present instead.
-- **Ambiguous reply** → treat as an edit, not as approval. Silence is never approval.
-- **Every re-present ends with a gate call.** A delta shown without one is a soft gate.
-
-The version number matters in a long thread. Reference prompts as v1/v2/v3 so there is never doubt about which one is in force.
-
-If the user asks for the prompt as a file to route to someone else, write it to `/mnt/user-data/outputs/` and present it. Not the default — inline is lower friction.
-
-The exported file carries the ledger, the version, and any open questions, marked unapproved — a fenced prompt alone reads as settled instruction.
+The approved prompt's rules — source order, unknowns as TBD, scope, the do-nots — keep applying to follow-up work on the same thing. Refine again only when the user invokes the skill again.
 
 ## Universal template
 
-Fill every block or mark it `n/a`. Silent omission is the gap this exists to close.
+Use the blocks that apply and drop the ones that don't. SHORT prompts keep TASK, UNKNOWNS and OUTPUT only.
 
 ```
 TASK
@@ -167,28 +134,27 @@ Leave unchanged: <explicit list> — verify by <method>
 Out of scope: <plausible-looking things that are not included>
 
 UNKNOWNS
-Anything not stated in the sources → TBD, listed in open items.
+Anything not stated in the sources → TBD, listed at the end.
 No inference from similar projects. No typical values. No boilerplate carry-over.
 Blank is not acceptable in place of TBD.
 
 CONFLICTS
 Flag, do not resolve. Numbered register: what each source says (cited),
-why it matters, whether it blocks, who owns the resolution.
-Blocking items lead the output.
-
-STOP AND ASK IF
-- <named condition>
-- <named condition>
+why it matters, who owns the resolution. Register it and keep going.
 
 CLAIMS (when the output states real-world facts or figures)
 Tag every factual claim per the claim-tag rules.
 Figures and identifiers must be [S] or [D]. [U] ships as TBD, never as a value.
 
-VERIFICATION GATE (report every item per references/shared/gate-report.md, pass or fail, before presenting)
+HARD STOPS (only these halt the run)
+- <an input the work cannot proceed without is missing or unreadable>
+- <the next step would overwrite or delete something outside SCOPE>
+Anything else unclear → take the conservative path, keep going, list it under "Calls I made".
+
+CHECKS (reported at the end, pass or fail, with evidence)
 - [script] <count in> == <count out>
 - [script] <unchanged thing> hash match
 - [judgment] <domain check>
-Review: same-context | reviewer-agent (required at FULL depth when a subagent tool exists)
 
 OUTPUT
 <exact count, format, filename, location, presentation order>
@@ -199,42 +165,50 @@ DO NOT
 - <negative constraint>
 ```
 
-Blocks that are genuinely inapplicable get `n/a` with a two-word reason: `SOURCES — n/a (no files)`.
+## Step 4 — Run
 
-## Phase 4 — Execute
+Open with one line: `Running prompt v1.` Then follow it. Group independent tool calls in the same turn.
 
-Open with one line naming what's running: `Executing approved prompt v2.` Then follow it literally. Group independent tool calls in the same turn.
+**The approved prompt governs** — over the original rough phrasing, and over a nicer-looking alternative.
 
-**The approved prompt governs.** Where it conflicts with the original casual phrasing, the prompt wins — that's what the review was for. Where it conflicts with a general habit or a nicer-looking alternative, the prompt still wins.
+**Don't stop to check in.** Only the prompt's HARD STOPS halt the run. For everything else take the conservative path, keep going, and note it for the end:
 
-**Stop triggers are real stops.** When one fires, stop and report. Do not improvise a resolution, do not proceed on the most plausible reading, do not note it at the bottom and continue. The user approved a prompt that said to stop.
+- a value is missing → `TBD`
+- two sources conflict → register both, pick neither
+- unclear whether something is in scope → leave it alone
+- a choice with no stated preference → the option that changes least
 
-**If the approved prompt turns out to be wrong** — a source doesn't contain what the inventory implied, the scope boundary makes the task impossible — stop, say what's wrong, propose the amendment, and wait. Do not silently amend and continue.
+If the prompt itself turns out to be unworkable — a source doesn't contain what it was said to, the scope makes the task impossible — that is a hard stop: say what's wrong and what the corrected prompt would be.
 
-## Phase 5 — Close
+## Step 5 — Finish
 
-Report the verification gate in the `references/shared/gate-report.md` format: every item, pass or fail; each `[script]` item with its command and actual output; each `[judgment]` item with what was compared and who judged it. Where a code tool exists, put the `[script]` checks in one script and run it once. Print the gate even when everything passes.
+Deliverable first. Then, for a FULL prompt, a short close:
 
-At FULL depth with a subagent tool, a separate reviewer agent grades the gate — it receives the approved prompt, the deliverable and the source pointers, not your reasoning. Otherwise review is same-context and labelled so.
+```
+**Checks** — each with its evidence: command → output, or what was compared and who judged it
+**Calls I made** — the conservative-path choices from the run
+**Still TBD** — what the sources didn't give
+```
 
-**A failed gate item blocks the artifact.** Report what failed; do not hand over the deliverable until it passes or the user explicitly waives it.
+Format and rules for Checks: `references/shared/gate-report.md`. Where a code tool exists, run the `[script]` checks as one script and print its output. When a subagent tool exists, a separate reviewer agent grades the checks; otherwise review is same-context and labelled so.
 
-Then list anything in the approved prompt that was not satisfied, and why. A partially-satisfied prompt reported honestly is useful; a partially-satisfied prompt presented as complete is the failure this whole skill is built to prevent.
+**A failed check gets fixed, not parked.** Fix it if the fix is inside scope and re-run the checks — twice at most. Still failing → say so first, above the deliverable, and mark that part not safe to use.
+
+A SHORT prompt gets no close unless something was assumed or is TBD — then one line.
 
 ## Failure modes
 
-Watch for these in your own output — each has happened:
-
 | Failure | What it looks like |
 |---|---|
-| Leaking the answer | The compile turn contains a finding, a number, or "it looks like X" |
-| Padding the ledger | Twelve assumptions, none of which change anything |
+| Leaking the answer | The refine turn contains a finding, a number, or "it looks like X" |
+| Re-gating | A follow-up after the run gets a new prompt and a new approval nobody asked for |
+| Stopping to check in | The run halts for something not on the HARD STOPS list |
+| Second approval | Edits come back for another sign-off instead of being applied and run |
+| Question dump | "Need from you" lists things that could have been assumed |
+| Padded assumptions | Twelve assumptions, none of which change anything |
 | Silent scope growth | The prompt asks for more than the user did, unmarked |
 | Fake inventory | SOURCES lists a file that was never checked for existence |
-| Soft gate | Executing on an ambiguous reply, or on answered questions alone |
-| Skipped gate report | Output presented without printing the verification results |
-| Bare PASS | A gate item marked PASS with no command, output, or named judge |
-| Self-graded FULL | A FULL-depth deliverable graded in the same context while a subagent tool was available |
-| Version drift | Executing against v1 after v2 was approved |
-| Blocks dropped | A template block omitted because it "didn't seem relevant" |
-| Over-reading | Loading every variant file, or the levers at MINIMAL |
+| Running on silence | Executing when the reply never said to |
+| Bare PASS | A check marked PASS with no command, output, or named judge |
+| Buried failure | A failed check reported below the deliverable |
+| Over-reading | Loading every variant file, or the levers for a SHORT prompt |
