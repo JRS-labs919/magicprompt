@@ -1,0 +1,6 @@
+{
+  "name": "magicprompt",
+  "version": "1.1.0",
+  "description": "Prompt discipline in three entry points: prompt-gate (approve the scope before work starts), promptlvl9000 (claim-verified answers), and gate-and-verify (both, chained). Shared rules live once in shared/ and are synced into each skill.",
+  "author": { "name": "Jake Skidmore" }
+}

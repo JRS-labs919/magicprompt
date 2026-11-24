@@ -1,0 +1,6 @@
+{
+  "_comment": "Inline files are pulled into SKILL.md by {{include: file}} markers in src/<skill>/SKILL.md. Lazy files are copied to skills/<skill>/references/shared/ and read only when the skill's load table says so.",
+  "prompt-gate":     { "lazy": ["levers.md", "variant-a.md", "variant-b.md", "variant-c.md", "variant-d.md", "variant-e.md", "variant-f.md", "claim-tags.md", "gate-report.md", "reviewer-agent.md"] },
+  "promptlvl9000":   { "lazy": ["reviewer-agent.md"] },
+  "gate-and-verify": { "lazy": ["levers.md", "variant-a.md", "variant-b.md", "variant-c.md", "variant-d.md", "variant-e.md", "variant-f.md", "gate-report.md", "reviewer-agent.md"] }
+}
