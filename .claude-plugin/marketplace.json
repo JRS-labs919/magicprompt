@@ -6,8 +6,8 @@
   "plugins": [
     {
       "name": "magicprompt",
-      "source": ".",
-      "description": "Claude Code skills for confirming task scope and verifying factual claims."
+      "source": "./plugins/magicprompt",
+      "description": "Skills for confirming task scope and verifying factual claims."
     }
   ]
 }

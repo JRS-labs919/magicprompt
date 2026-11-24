@@ -4,17 +4,22 @@ import json, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SK = ROOT / "skills"
+PLUGIN = ROOT / "plugins" / "magicprompt"
+SK = PLUGIN / "skills"
 results = []
 def check(name, ok, detail=""):
     results.append(ok)
     print(f"{'PASS' if ok else 'FAIL'}  {name}" + (f" — {detail}" if detail else ""))
 
 # 1 plugin.json
-pj = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+pj = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text())
 check("plugin.json name/version", pj.get("name") == "magicprompt" and re.fullmatch(r"\d+\.\d+\.\d+", pj.get("version", "")) is not None,
       f"name={pj.get('name')} version={pj.get('version')}")
 check("CHANGELOG has this version", f"## {pj['version']}" in (ROOT / "CHANGELOG.md").read_text())
+marketplace = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
+entry, = marketplace["plugins"]
+check("marketplace points to the packaged plugin",
+      entry["name"] == pj["name"] and entry["source"] == "./plugins/magicprompt")
 
 # 2 manifest / shared coverage
 manifest = {k: v for k, v in json.loads((ROOT / "shared-manifest.json").read_text()).items() if not k.startswith("_")}

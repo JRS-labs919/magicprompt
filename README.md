@@ -1,6 +1,6 @@
 # Magicprompt
 
-Magicprompt is a Claude Code plugin for confirming task scope and verifying factual claims.
+Magicprompt is a plugin for confirming task scope and verifying factual claims in Claude.
 
 | Skill | Use when | Guards against |
 |---|---|---|
@@ -10,7 +10,11 @@ Magicprompt is a Claude Code plugin for confirming task scope and verifying fact
 
 `prompt-gate` and `gate-and-verify` run only when invoked explicitly. `promptlvl9000` can also trigger on its own for high-accuracy questions.
 
-## Install in Claude Code
+## Install in Claude
+
+On claude.ai, open **Customize → Plugins → Add marketplace**. Enter `JRS-labs919/magicprompt`, select **Sync**, then install **magicprompt** from the marketplace.
+
+### Claude Code
 
 Run these commands in a Claude Code session, then choose an installation scope.
 
@@ -34,8 +38,8 @@ src/<skill>/SKILL.md     skill source, with {{include: file.md}} markers
 src/<skill>/references/  files owned by one skill
 shared/                  rules used by more than one skill — single copy
 shared-manifest.json     which shared files each skill loads on demand
-skills/                  GENERATED — what gets installed; do not edit
-scripts/build.py         builds skills/ (--check verifies it is current)
+plugins/magicprompt/     plugin manifest and generated skills
+scripts/build.py         builds plugin skills (--check verifies they are current)
 scripts/validate_plugin.py  release gate
 ```
 
@@ -43,17 +47,17 @@ Material every run needs is built into each SKILL.md, so a run starts without re
 
 ## Editing
 
-1. Edit `src/<skill>/SKILL.md` or `shared/*.md`. Never edit `skills/`.
+1. Edit `src/<skill>/SKILL.md` or `shared/*.md`. Never edit generated skills in `plugins/magicprompt/skills/`.
 2. `python3 scripts/build.py`
 3. `python3 scripts/validate_plugin.py` — must end `0 fail`.
-4. Bump `version` in `.claude-plugin/plugin.json` and add a CHANGELOG entry.
+4. Bump `version` in `plugins/magicprompt/.claude-plugin/plugin.json` and add a CHANGELOG entry.
 
 ## Install notes
 
 Clone or download and unzip this repository. From the repository root, start Claude Code with the plugin loaded for the current session.
 
 ```sh
-claude --plugin-dir .
+claude --plugin-dir ./plugins/magicprompt
 ```
 
 - Remove the standalone `prompt-gate` and `promptlvl9000` skills after installing, or both copies will compete.

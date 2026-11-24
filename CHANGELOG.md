@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 — 2026-11-24
+
+- Package the plugin in a dedicated directory for Claude marketplace sync.
+- Document marketplace installation from claude.ai and Claude Code.
+
 ## 1.1.0 — 2026-11-24
 Optimisation pass on all three skills.
 
